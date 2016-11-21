@@ -14,6 +14,8 @@
 define omd::site(
   $crontabs=true, #if set to true, the user/site will be allowed to run crontabs (normally the default). If not, disable crontabs
   $refresh_timeout=600, #the refresh timeout is very important, as reloading nagios can take ages
+  $default_gui='welcome',
+  $multisite_cookie_auth=false,
 ) {
 
   $omd_path="/opt/omd/sites/${name}"
@@ -76,19 +78,43 @@ define omd::site(
     default => "on"
   }
   $cronfile="${puppet_dir}/cron.txt"
-  file {$cronfile:
-    ensure=>present,
-    notify => Exec["omd maintenance stop site ${name}"],
-    content => $cronenable,
+  omd::site::set { 'cron':
+    command    => "CRONTAB ${cronfile} > /dev/null 2>&1 || rm -f ${cronfile}",
+    state      => $cronenable,
+    site       => $name,
+    puppet_dir => $puppet_dir,
   }
-  ~>
-  exec { "omd crontab ${name}":
-    command => "omd config ${name} set CRONTAB $cronfile > /dev/null 2>&1 || rm -f $cronfile",
-    path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
-    require => Exec["omd maintenance stop site ${name}","omd create site ${name}"],
-    notify => Exec["omd maintenance start site ${name}"],
-    refreshonly => true,
+  omd::site::set { 'default_gui':
+    command    => "DEFAULT_GUI ${default_gui}",
+    state      => $default_gui,
+    site       => $name,
+    puppet_dir => $puppet_dir,
   }
+
+  $multi_cookie_auth = $multisite_cookie_auth ? {
+    false => "off",
+    default => "on"
+  }
+  omd::site::set { 'multisite_cookie_auth':
+    command    => "MULTISITE_COOKIE_AUTH ${multi_cookie_auth}",
+    state      => $multi_cookie_auth,
+    site       => $name,
+    puppet_dir => $puppet_dir,
+  }
+
+  # file {$cronfile:
+  #   ensure=>present,
+  #   notify => Exec["omd maintenance stop site ${name}"],
+  #   content => $cronenable,
+  # }
+  # ~>
+  # exec { "omd crontab ${name}":
+  #   command => "omd config ${name} set CRONTAB $cronfile > /dev/null 2>&1 || rm -f $cronfile",
+  #   path => ['/usr/bin','/usr/sbin','/bin','/sbin',],
+  #   require => Exec["omd maintenance stop site ${name}","omd create site ${name}"],
+  #   notify => Exec["omd maintenance start site ${name}"],
+  #   refreshonly => true,
+  # }
 
   #prepare user additions by creating the virtual user config file initialisation
   @omd::multisite::userinit { $name: }
