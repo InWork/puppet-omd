@@ -17,7 +17,8 @@
   $sslciphersuite='ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS',
   $ssl_force_client_cert=true, #this is the "SSLVerifyClient require" option. If false, this will be defined as SSLVerifyClient optional
   $admin_mail='admin mail not set',
-  $priority='zzzz'
+  $priority='zzzz',
+  $multisite_cookie_auth=false,
 
  )
  {
