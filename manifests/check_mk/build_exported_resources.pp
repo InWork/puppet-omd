@@ -19,7 +19,7 @@ define omd::check_mk::build_exported_resources(
 ) {
   if $allow_duplicates { # a non empty string is also a true
     # allow the user to specify a specific split string to use...
-    $c = type3x($allow_duplicates) ? {
+    $c = type($allow_duplicates) ? {
           'string' => "${allow_duplicates}",
           default => '#',
     }
